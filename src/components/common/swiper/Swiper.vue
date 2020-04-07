@@ -16,21 +16,33 @@
 export default {
   name: 'Swiper',
   props: {
-    banner: {}
+    banner: {},
+    // 设置轮播的时间
+    interval: {
+      type: Number,
+      default: 3000
+    },
+    // 设置动画的时间
+    animTime: {
+      type: Number,
+      default: 300
+    },
+    // 设置滑动多少为一下张
+    moveC: {
+      type: Number,
+      default: 0.25
+    }
   },
   data () {
     return {
       // 当前的index
       itemIndex: 0,
       // 是否正在滚动
-      scrolling: false
+      scrolling: false,
+      itemWidth: 320
     }
   },
   computed: {
-    // 单个的宽度
-    itemWidth () {
-      return 320
-    },
     // 总数
     itemCount () {
       return this.banner.length
@@ -42,7 +54,11 @@ export default {
   mounted () {
     setTimeout(() => {
       this.startTimer()
-    })
+    }, 300)
+    this.itemWidth = window.innerWidth
+    window.onresize = () => {
+      this.itemWidth = window.innerWidth
+    }
   },
   methods: {
     // 开启定时器
@@ -50,7 +66,7 @@ export default {
       this.playTimer = window.setInterval(() => {
         this.itemIndex++
         this.scrollPosition(-this.itemIndex * this.itemWidth)
-      }, 3000)
+      }, this.interval)
     },
     // 停止定时器
     stopTimer () {
@@ -63,7 +79,7 @@ export default {
     // 滚动到正确位置
     scrollPosition (curPosition) {
       this.scrolling = true
-      this.swiperStyle.transition = 'transform ' + 300 + 'ms'
+      this.swiperStyle.transition = 'transform ' + this.animTime + 'ms'
       this.setTransform(curPosition)
       this.checkPosition()
       this.scrolling = false
@@ -72,7 +88,7 @@ export default {
     checkPosition () {
       if (this.itemIndex >= this.itemCount) {
         this.itemIndex = 0
-      } else if (this.itemIndex <= 0) {
+      } else if (this.itemIndex < 0) {
         this.itemIndex = this.itemCount - 1
       }
       this.setTransform(-this.itemIndex * this.itemWidth)
@@ -81,6 +97,8 @@ export default {
     touchStart (e) {
       // 如果正在滚动则无法移动
       if (this.scrolling) return
+      // 停止计时器
+      this.stopTimer()
       // 记录开始位置
       this.startX = e.touches[0].pageX
     },
@@ -100,12 +118,14 @@ export default {
       let curDistance = Math.abs(this.distance)
       if (this.distance === 0) {
         return
-      } else if (this.distance > 0 && curDistance > this.itemWidth * 0.25) {
+      } else if (this.distance > 0 && curDistance > this.itemWidth * this.moveC) {
         this.itemIndex--
-      } else if (this.distance < 0 && curDistance > this.itemWidth * 0.25) {
+      } else if (this.distance < 0 && curDistance > this.itemWidth * this.moveC) {
         this.itemIndex++
       }
       this.scrollPosition(-this.itemIndex * this.itemWidth)
+      // 移动完成后重新开启定时器
+      this.startTimer()
     }
   }
 }
@@ -113,7 +133,6 @@ export default {
 
 <style scoped>
   #swiper-box {
-    margin-top: 44px;
     overflow: hidden;
     position: relative;
   }
