@@ -24,6 +24,7 @@ export class Goods {
     this.services = services
     this.shopName = shopInfo.name
     this.shopInfo = shopInfo
+    this.lowNowPrice = itemInfo.lowNowPrice
   }
 }
 export class ItemParams {
@@ -32,5 +33,14 @@ export class ItemParams {
     this.image = info.images ? info.images[0] : ''
     this.infos = info.set
     this.sizes = rule.tables
+  }
+}
+export class Product {
+  constructor (image, title, desc, price, iid) {
+    this.image = image
+    this.title = title
+    this.desc = desc
+    this.price = price
+    this.iid = iid
   }
 }

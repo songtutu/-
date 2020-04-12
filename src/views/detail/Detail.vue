@@ -11,7 +11,7 @@
       <detail-comment-info ref='comment' :commentInfo='commentInfo'></detail-comment-info>
       <goods-list ref="recommend" :goods='recommends'></goods-list>
     </scroll>
-    <detail-bottom></detail-bottom>
+    <detail-bottom @addCar='addCar'></detail-bottom>
   </div>
   <mt-spinner :size='50' :type='3' color='gray' id='loading'></mt-spinner>
 </div>
@@ -19,7 +19,7 @@
 
 <script>
 import DetailNav from 'views/detail/childView/DetailNav'
-import {getDetail, getRecommends, Goods, ItemParams} from 'network/detail'
+import {getDetail, getRecommends, Goods, ItemParams, Product} from 'network/detail'
 import DetailSwiper from 'views/detail/childView/DetailSwiper'
 import DetailBaseInfo from 'views/detail/childView/DetailBaseInfo'
 import DetailGoodsInfo from 'views/detail/childView/DetailGoodsInfo'
@@ -62,7 +62,9 @@ export default {
       recommends: [],
       themeTopYs: [],
       timerQ: null,
-      curIndex: 0
+      curIndex: 0,
+      isClick: true,
+      clcikTimer: null
     }
   },
   computed: {
@@ -129,6 +131,19 @@ export default {
           document.querySelector('#loading').style.visibility = 'hidden'
         }
       }, 100)
+    },
+    addCar () {
+      if (this.isClick) {
+        this.isClick = false
+        console.log(123)
+        if (this.clcikTimer) clearTimeout(this.clcikTimer)
+        this.clcikTimer = setTimeout(() => {
+          this.isClick = true
+        }, 1000)
+        let product = new Product(this.topImagesList[0], this.goods.title, this.goods.desc, this.goods.lowNowPrice, this.iid)
+        this.$store.commit('addCar', product)
+        console.log(this.$store.state.cartList)
+      }
     }
   },
   created () {

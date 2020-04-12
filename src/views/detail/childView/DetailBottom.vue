@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="right">
-      <div class="add-car">加入购物车</div>
+      <div class="add-car" @click="addCar">加入购物车</div>
       <div class="buy">立即购买</div>
     </div>
   </div>
@@ -32,6 +32,9 @@ export default {
       } else {
         dom.style.backgroundPosition = ''
       }
+    },
+    addCar () {
+      this.$emit('addCar')
     }
   }
 }
