@@ -40,7 +40,8 @@ module.exports = {
       'components': '@/components',
       'network': '@/network',
       'views': '@/views',
-      'store': '@/store'
+      'store': '@/store',
+      'utils': '@utils'
     }
   },
   module: {

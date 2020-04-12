@@ -1,6 +1,6 @@
 <template>
-  <div class="goods-item"  >
-    <img class="goods-img" :src='item.show.img' alt="" ref="img" @load="imageLoad">
+  <div class="goods-item"  @click="itemClick">
+    <img class="goods-img" :src='showImage' alt="" ref="img" @load="imageLoad">
     <div class="goods-info">
       <p>{{item.title}}</p>
       <span class="price">{{item.price}}</span>
@@ -23,6 +23,14 @@ export default {
       type: Number
     }
   },
+  computed: {
+    showImage () {
+      return this.item.image || this.item.show.img
+    },
+    shopId () {
+      return this.item.iid || this.item.shop_id
+    }
+  },
   mounted () {
     let height = this.$refs.img.offsetHeight
     if (height < window.innerWidth * 0.7) {
@@ -33,8 +41,19 @@ export default {
     }
   },
   methods: {
+    // 监控图片是否加载完
     imageLoad () {
-      this.$store.state.imgLoaded++
+      if (this.$route.path.indexOf('/home') !== -1) {
+        this.$store.state.imgLoaded++
+      } else if (this.$route.path.indexOf('/detail') !== -1) {
+        this.$store.state.detailLoaded++
+      }
+    },
+    itemClick () {
+      this.$router.push({
+        path: '/detail',
+        query: this.shopId
+      })
     }
   }
 }

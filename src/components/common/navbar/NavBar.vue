@@ -14,8 +14,6 @@ export default {
 
 <style scoped>
   .nav-bar {
-    position:fixed;
-    top: 0;
     display: flex;
     height: 44px;
     width: 100%;
@@ -27,5 +25,6 @@ export default {
   }
   .center{
     flex: 1;
+    text-align: center;
   }
 </style>

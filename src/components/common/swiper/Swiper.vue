@@ -5,8 +5,8 @@
     </div>
     <slot name="indicator"></slot>
     <div class="indicator">
-      <slot name="indicator" v-if="itemCount > 1">
-        <div v-for="(item, index) in itemCount" class="indi-item" :key="index" :class="{active: index === itemIndex}"></div>
+      <slot name="indicator" v-if="showIndicator && slideCount> 1">
+        <div v-for="(item, index) in slideCount" class="indi-item" :key="index" :class="{active: index === currentIndex-1}"></div>
       </slot>
     </div>
   </div>
@@ -16,82 +16,101 @@
 export default {
   name: 'Swiper',
   props: {
-    banner: {},
-    // 设置轮播的时间
     interval: {
       type: Number,
       default: 3000
     },
-    // 设置动画的时间
-    animTime: {
+    animDuration: {
       type: Number,
       default: 300
     },
-    // 设置滑动多少为一下张
-    moveC: {
+    moveRatio: {
       type: Number,
       default: 0.25
+    },
+    showIndicator: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
     return {
-      // 当前的index
-      itemIndex: 0,
-      // 是否正在滚动
-      scrolling: false,
-      itemWidth: 320
+      slideCount: 0, // 元素个数
+      totalWidth: 0, // swiper的宽度
+      swiperStyle: {}, // swiper样式
+      currentIndex: 1, // 当前的index
+      scrolling: false// 是否正在滚动
     }
   },
-  computed: {
-    // 总数
-    itemCount () {
-      return this.banner.length
-    },
-    swiperStyle () {
-      return document.querySelector('.swiper').style
-    }
-  },
-  mounted () {
+  mounted: function () {
+    // 1.操作DOM, 在前后添加Slide
     setTimeout(() => {
+      this.handleDom()
+      // 2.开启定时器
       this.startTimer()
-    }, 300)
-    this.itemWidth = window.innerWidth
-    window.onresize = () => {
-      this.itemWidth = window.innerWidth
-    }
+    }, 100)
   },
   methods: {
-    // 开启定时器
-    startTimer () {
+    //  定时器操作
+    startTimer: function () {
       this.playTimer = window.setInterval(() => {
-        this.itemIndex++
-        this.scrollPosition(-this.itemIndex * this.itemWidth)
+        this.currentIndex++
+        this.scrollContent(-this.currentIndex * this.totalWidth)
       }, this.interval)
     },
-    // 停止定时器
-    stopTimer () {
+    stopTimer: function () {
       window.clearInterval(this.playTimer)
     },
     // 移动动画
-    setTransform (position) {
-      this.swiperStyle.transform = `translate3d(${position}px, 0, 0)`
-    },
-    // 滚动到正确位置
-    scrollPosition (curPosition) {
+    scrollContent: function (currentPosition) {
+      // 0.设置正在滚动
       this.scrolling = true
-      this.swiperStyle.transition = 'transform ' + this.animTime + 'ms'
-      this.setTransform(curPosition)
+      // 1.开始滚动动画
+      this.swiperStyle.transition = 'transform ' + this.animDuration + 'ms'
+      this.setTransform(currentPosition)
+      // 2.判断滚动到的位置
       this.checkPosition()
+      // 4.滚动完成
       this.scrolling = false
     },
     // 校验位置
-    checkPosition () {
-      if (this.itemIndex >= this.itemCount) {
-        this.itemIndex = 0
-      } else if (this.itemIndex < 0) {
-        this.itemIndex = this.itemCount - 1
+    checkPosition: function () {
+      window.setTimeout(() => {
+        // 1.校验正确的位置
+        this.swiperStyle.transition = '0ms'
+        if (this.currentIndex >= this.slideCount + 1) {
+          this.currentIndex = 1
+          this.setTransform(-this.currentIndex * this.totalWidth)
+        } else if (this.currentIndex <= 0) {
+          this.currentIndex = this.slideCount
+          this.setTransform(-this.currentIndex * this.totalWidth)
+        }
+        // 2.结束移动后的回调
+        this.$emit('transitionEnd', this.currentIndex - 1)
+      }, this.animDuration)
+    },
+    setTransform: function (position) {
+      this.swiperStyle.transform = `translate3d(${position}px, 0, 0)`
+      this.swiperStyle['-webkit-transform'] = `translate3d(${position}px), 0, 0`
+      this.swiperStyle['-ms-transform'] = `translate3d(${position}px), 0, 0`
+    },
+    handleDom: function () {
+      // 1.获取要操作的元素
+      let swiperEl = document.querySelector('.swiper')
+      let slidesEls = swiperEl.getElementsByClassName('slide')
+      // 2.保存个数
+      this.slideCount = slidesEls.length
+      // 3.如果大于1个, 那么在前后分别添加一个slide
+      if (this.slideCount > 1) {
+        let cloneFirst = slidesEls[0].cloneNode(true)
+        let cloneLast = slidesEls[this.slideCount - 1].cloneNode(true)
+        swiperEl.insertBefore(cloneLast, slidesEls[0])
+        swiperEl.appendChild(cloneFirst)
+        this.totalWidth = swiperEl.offsetWidth
+        this.swiperStyle = swiperEl.style
       }
-      this.setTransform(-this.itemIndex * this.itemWidth)
+      // 4.让swiper元素, 显示第一个(目前是显示前面添加的最后一个元素)
+      this.setTransform(-this.totalWidth)
     },
     // 接触开始
     touchStart (e) {
@@ -118,12 +137,12 @@ export default {
       let curDistance = Math.abs(this.distance)
       if (this.distance === 0) {
         return
-      } else if (this.distance > 0 && curDistance > this.itemWidth * this.moveC) {
-        this.itemIndex--
-      } else if (this.distance < 0 && curDistance > this.itemWidth * this.moveC) {
-        this.itemIndex++
+      } else if (this.distance > 0 && curDistance > this.totalWidth * this.moveRatio) {
+        this.currentIndex--
+      } else if (this.distance < 0 && curDistance > this.totalWidth * this.moveRatio) {
+        this.currentIndex++
       }
-      this.scrollPosition(-this.itemIndex * this.itemWidth)
+      this.scrollContent(-this.currentIndex * this.totalWidth)
       // 移动完成后重新开启定时器
       this.startTimer()
     }
