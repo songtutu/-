@@ -29,6 +29,8 @@ import DetailBottom from 'views/detail/childView/DetailBottom'
 
 import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
+
+import { Toast } from 'mint-ui'
 const delay1 = (function () {
   let timer1 = 0
   return function (callback, ms) {
@@ -116,7 +118,6 @@ export default {
       this.themeTopYs.push(this.$refs.params.$el.offsetTop)
       this.themeTopYs.push(this.$refs.comment.$el.offsetTop)
       this.themeTopYs.push(this.$refs.recommend.$el.offsetTop)
-      console.log(this.themeTopYs)
       if (this.$refs.scrollrefresh) this.$refs.scroll.refresh()
     },
     checkLoad () {
@@ -135,14 +136,17 @@ export default {
     addCar () {
       if (this.isClick) {
         this.isClick = false
-        console.log(123)
         if (this.clcikTimer) clearTimeout(this.clcikTimer)
         this.clcikTimer = setTimeout(() => {
           this.isClick = true
         }, 1000)
-        let product = new Product(this.topImagesList[0], this.goods.title, this.goods.desc, this.goods.lowNowPrice, this.iid)
+        let product = new Product(this.topImagesList[0], this.goods.title, this.goods.desc, this.goods.lowNowPrice, this.iid, this.goods.discount)
         this.$store.commit('addCar', product)
-        console.log(this.$store.state.cartList)
+        Toast({
+          message: '加入购物车成功',
+          iconClass: 'icon icon-success',
+          duration: 1000
+        })
       }
     }
   },
@@ -185,7 +189,7 @@ export default {
   position: relative;
   z-index: 9;
   background: #fff;
-  height: 100vh;
+  height: 100vh ;
 }
 .loading{
   width: 100%;

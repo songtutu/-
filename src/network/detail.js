@@ -36,11 +36,13 @@ export class ItemParams {
   }
 }
 export class Product {
-  constructor (image, title, desc, price, iid) {
+  constructor (image, title, desc, price, iid, discount) {
     this.image = image
     this.title = title
     this.desc = desc
     this.price = price
     this.iid = iid
+    this.discount = discount
+    this.checked = false
   }
 }
